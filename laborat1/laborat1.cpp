@@ -1,5 +1,4 @@
 ﻿#define GLEW_STATIC
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
@@ -7,7 +6,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include "shader.h"
 #include "Model.h"
 
@@ -24,7 +22,6 @@ float pitch = 0.0f;
 float lastX = SCR_WIDTH / 2.0;
 float lastY = SCR_HEIGHT / 2.0;
 float fov = 45.0f;
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -48,6 +45,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -62,8 +60,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     Shader myShader("vertex.glsl", "fragment.glsl");
-
     Model ourModel("lab3.obj");
+
+    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -91,8 +90,16 @@ int main() {
         unsigned int modelLoc = glGetUniformLocation(myShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-        // Цвет модели (оранжевый)
-        glUniform3f(glGetUniformLocation(myShader.ID, "lightColor"), 1.0f, 0.5f, 0.31f);
+        glUniform3f(glGetUniformLocation(myShader.ID, "viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
+        glUniform3f(glGetUniformLocation(myShader.ID, "material.ambient"), 1.0f, 0.5f, 0.31f);
+        glUniform3f(glGetUniformLocation(myShader.ID, "material.diffuse"), 1.0f, 0.5f, 0.31f);
+        glUniform3f(glGetUniformLocation(myShader.ID, "material.specular"), 0.5f, 0.5f, 0.5f);
+        glUniform1f(glGetUniformLocation(myShader.ID, "material.shininess"), 32.0f);
+
+        glUniform3f(glGetUniformLocation(myShader.ID, "light.position"), lightPos.x, lightPos.y, lightPos.z);
+        glUniform3f(glGetUniformLocation(myShader.ID, "light.ambient"), 0.2f, 0.2f, 0.2f);
+        glUniform3f(glGetUniformLocation(myShader.ID, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+        glUniform3f(glGetUniformLocation(myShader.ID, "light.specular"), 1.0f, 1.0f, 1.0f);
 
         ourModel.Draw(myShader);
 
@@ -140,6 +147,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
+
     lastX = xpos;
     lastY = ypos;
 
